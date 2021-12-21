@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 include "Connection.php";
+include "UnknownPropertyException.php";
 
 final class Item
 {
@@ -58,21 +59,27 @@ final class Item
             //возвращает значение свойства
             return $this->$propertyName;
         }
+
+        throw new UnknownPropertyException("unknown property $propertyName");
     }
 
     /**
      * @param string $propertyName
      * @param $value
+     * @throws UnknownPropertyException
      */
     public function __set(string $propertyName, $value)
     {
         if (property_exists($this, $propertyName) && $propertyName != "id") {
-            echo "Установка '$propertyName' в '$value'\n";
+            var_dump("Установка '$propertyName' в '$value'\n");
             $this->$propertyName = $value;
-            $changed = true;
+            $this->changed = true;
             var_dump($propertyName);
             var_dump($value);
+            return;
         }
+
+        throw new UnknownPropertyException("unknown property $propertyName");
     }
 
     public function save()
@@ -85,10 +92,9 @@ final class Item
         $getData = $conn->prepare($query);
         $result = $getData->execute(['id' => $this->id, 'name' => $this->name, 'status' => $this->status]);
         var_dump($result);
+        $this->changed = false;
     }
 }
-
-
 
 
 
